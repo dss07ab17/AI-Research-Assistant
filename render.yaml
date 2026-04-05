@@ -4,6 +4,9 @@ services:
     runtime: docker
     plan: starter
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
         sync: false
+      - key: MAX_PAPERS
+        value: "3"

@@ -50,8 +50,9 @@ This repo includes a `Dockerfile` and `render.yaml`, so you can deploy it as a R
 
 Notes:
 - This app serves both the frontend and backend from the same service.
-- The sentence-transformer model is downloaded on first use, so the first query can be slower.
+- The Docker image pre-downloads the sentence-transformer model to reduce first-request delays.
 - `data/` is ephemeral on most cloud platforms unless you add a persistent disk.
+- On smaller instances, keep `MAX_PAPERS=3` or lower for faster responses.
 
 ### Docker
 
