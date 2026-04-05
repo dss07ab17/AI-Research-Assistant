@@ -36,6 +36,32 @@ uvicorn app.main:app --reload
 
 Then open `http://127.0.0.1:8000/` in your browser.
 
+## Deploy
+
+### Render
+
+This repo includes a `Dockerfile` and `render.yaml`, so you can deploy it as a Render web service.
+
+1. Push the repo to GitHub.
+2. In Render, create a new Web Service from the GitHub repo.
+3. Render will detect `render.yaml` and use the Docker deployment.
+4. Set `OPENAI_API_KEY` in Render if you want OpenAI-based answer synthesis.
+5. Deploy and open the generated URL.
+
+Notes:
+- This app serves both the frontend and backend from the same service.
+- The sentence-transformer model is downloaded on first use, so the first query can be slower.
+- `data/` is ephemeral on most cloud platforms unless you add a persistent disk.
+
+### Docker
+
+You can also run it directly with Docker:
+
+```bash
+docker build -t ai-research-assistant .
+docker run -p 8000:8000 --env OPENAI_API_KEY=your_key_here ai-research-assistant
+```
+
 ## Environment
 
 Copy `.env.example` to `.env` and set values as needed:
