@@ -38,21 +38,24 @@ Then open `http://127.0.0.1:8000/` in your browser.
 
 ## Deploy
 
-### Render
+### Railway
 
-This repo includes a `Dockerfile` and `render.yaml`, so you can deploy it as a Render web service.
+This repo includes a `Dockerfile` and `railway.json`, so Railway can deploy it directly from GitHub using the Docker build path.
 
 1. Push the repo to GitHub.
-2. In Render, create a new Web Service from the GitHub repo.
-3. Render will detect `render.yaml` and use the Docker deployment.
-4. Set `OPENAI_API_KEY` in Render if you want OpenAI-based answer synthesis.
-5. Deploy and open the generated URL.
+2. In Railway, create a new project from the GitHub repo.
+3. Railway will detect the root `Dockerfile` and build the service from it.
+4. In the Railway service settings, set the healthcheck path to `/health`.
+5. Add environment variables:
+   - `OPENAI_API_KEY` if you want OpenAI-based answer synthesis
+   - `MAX_PAPERS=5` to match the app default, or lower it manually if your instance is memory-constrained
+6. Deploy and open the generated Railway domain.
 
 Notes:
 - This app serves both the frontend and backend from the same service.
 - The Docker image pre-downloads the sentence-transformer model to reduce first-request delays.
-- `data/` is ephemeral on most cloud platforms unless you add a persistent disk.
-- On smaller instances, keep `MAX_PAPERS=3` or lower for faster responses.
+- `data/` is ephemeral on Railway unless you attach a volume.
+- If memory is tight, lower `MAX_PAPERS` manually and use a larger Railway instance if needed.
 
 ### Docker
 

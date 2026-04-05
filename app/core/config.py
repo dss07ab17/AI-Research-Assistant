@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     chunk_size: int = 900
     chunk_overlap: int = 150
     embedding_batch_size: int = 16
-    max_papers: int = 3
+    max_papers: int = 5
     max_chunks: int = 6
     max_chunks_per_paper: int = 2
     lexical_boost_weight: float = 0.15

@@ -41,7 +41,7 @@ form.addEventListener("submit", async (event) => {
 
   const formData = new FormData(form);
   const query = String(formData.get("query") || "").trim();
-  const maxPapers = Number(formData.get("max_papers") || 3);
+  const maxPapers = Number(formData.get("max_papers") || 5);
 
   if (!query) {
     setStatus("Please enter a research question.", "error");
