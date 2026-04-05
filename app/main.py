@@ -13,6 +13,7 @@ from app.services.research_pipeline import ResearchPipeline
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 app = FastAPI(
@@ -36,6 +37,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={
             "detail": "Invalid request payload.",
             "errors": exc.errors(),
+            "path": str(request.url.path),
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("Unhandled error while serving %s", request.url.path, exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc) or "Internal server error.",
             "path": str(request.url.path),
         },
     )

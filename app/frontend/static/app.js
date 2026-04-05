@@ -20,6 +20,22 @@ function renderList(target, items, renderer) {
   });
 }
 
+async function readResponsePayload(response) {
+  const rawBody = await response.text();
+
+  if (!rawBody) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(rawBody);
+  } catch {
+    return {
+      detail: rawBody
+    };
+  }
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -47,7 +63,7 @@ form.addEventListener("submit", async (event) => {
       })
     });
 
-    const payload = await response.json();
+    const payload = await readResponsePayload(response);
 
     if (!response.ok) {
       const detail = typeof payload.detail === "string"

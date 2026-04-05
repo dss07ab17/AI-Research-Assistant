@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
 import xml.etree.ElementTree as ET
 
 import httpx
+from fastapi import HTTPException
 
 from app.core.config import Settings
 from app.models.schemas import Paper
+
+
+logger = logging.getLogger(__name__)
 
 
 class ArxivClient:
@@ -16,21 +22,58 @@ class ArxivClient:
         self._settings = settings
 
     async def search(self, query: str, max_results: int) -> list[Paper]:
-        normalized_query = self._normalize_query(query)
-        params = {
-            "search_query": f"all:{normalized_query}",
-            "start": 0,
-            "max_results": max_results,
-            "sortBy": "relevance",
-            "sortOrder": "descending",
-        }
         headers = {"User-Agent": self._settings.user_agent}
+        query_candidates = self._build_query_candidates(query)
 
         async with httpx.AsyncClient(timeout=self._settings.request_timeout_seconds, headers=headers) as client:
-            response = await client.get(self.base_url, params=params)
-            response.raise_for_status()
+            last_error: Exception | None = None
 
-        return self._parse_feed(response.text)
+            for candidate in query_candidates:
+                params = {
+                    "search_query": f"all:{candidate}",
+                    "start": 0,
+                    "max_results": max_results,
+                    "sortBy": "relevance",
+                    "sortOrder": "descending",
+                }
+
+                for attempt in range(3):
+                    try:
+                        response = await client.get(self.base_url, params=params)
+                        response.raise_for_status()
+                        papers = self._parse_feed(response.text)
+                        if papers:
+                            return papers
+                        break
+                    except httpx.HTTPStatusError as exc:
+                        last_error = exc
+                        status_code = exc.response.status_code
+                        logger.warning(
+                            "arXiv search failed for candidate '%s' with status %s on attempt %s",
+                            candidate,
+                            status_code,
+                            attempt + 1,
+                        )
+                        if status_code < 500:
+                            break
+                        await asyncio.sleep(1.0 * (attempt + 1))
+                    except httpx.HTTPError as exc:
+                        last_error = exc
+                        logger.warning(
+                            "arXiv search transport error for candidate '%s' on attempt %s: %s",
+                            candidate,
+                            attempt + 1,
+                            exc,
+                        )
+                        await asyncio.sleep(1.0 * (attempt + 1))
+
+            if last_error is not None:
+                raise HTTPException(
+                    status_code=502,
+                    detail="Paper search is temporarily unavailable from arXiv. Please retry with a shorter topic phrase.",
+                ) from last_error
+
+        return []
 
     def _parse_feed(self, xml_text: str) -> list[Paper]:
         ns = {"atom": "http://www.w3.org/2005/Atom"}
@@ -79,7 +122,32 @@ class ArxivClient:
 
     @staticmethod
     def _normalize_query(query: str) -> str:
-        return re.sub(r"\s+", " ", query).strip()
+        normalized = query.lower()
+        normalized = re.sub(r"[^\w\s-]", " ", normalized)
+        normalized = re.sub(r"\b(what|are|is|the|latest|recent|improvements|improvement|for|in|on|of|to|a|an)\b", " ", normalized)
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+        return normalized
+
+    def _build_query_candidates(self, query: str) -> list[str]:
+        raw = re.sub(r"\s+", " ", query).strip()
+        normalized = self._normalize_query(query)
+        candidates = [candidate for candidate in [normalized, raw] if candidate]
+
+        if normalized:
+            keywords = normalized.split()
+            if len(keywords) > 4:
+                candidates.append(" ".join(keywords[:4]))
+            if len(keywords) > 2:
+                candidates.append(" AND ".join(keywords[:3]))
+
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for candidate in candidates:
+            if candidate not in seen:
+                deduped.append(candidate)
+                seen.add(candidate)
+
+        return deduped or ["research"]
 
     @staticmethod
     def _clean_text(value: str) -> str:
