@@ -18,13 +18,11 @@ class AnswerService:
         self._model = model
 
     def generate(self, query: str, chunks: list[RetrievedChunk]) -> QueryResponse:
-        if self._api_key:
-            try:
-                return self._generate_with_openai(query, chunks)
-            except Exception as exc:
-                logger.warning("OpenAI synthesis failed, falling back to extractive mode: %s", exc)
-
-        return self._generate_extractively(query, chunks)
+        try:
+            return self._generate_with_openai(query, chunks)
+        except Exception as exc:
+            logger.warning("OpenAI synthesis failed, falling back to extractive mode: %s", exc)
+            return self._generate_extractively(query, chunks)
 
     def _generate_with_openai(self, query: str, chunks: list[RetrievedChunk]) -> QueryResponse:
         client = OpenAI(api_key=self._api_key)

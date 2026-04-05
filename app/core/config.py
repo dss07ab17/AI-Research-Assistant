@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     lexical_boost_weight: float = 0.15
     request_timeout_seconds: int = 30
     user_agent: str = "ai-research-assistant/0.1.0"
-    embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_model_name: str = "text-embedding-3-small"
     openai_model: str = "gpt-4.1-mini"
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
 

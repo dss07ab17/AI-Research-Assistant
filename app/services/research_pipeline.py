@@ -24,6 +24,12 @@ class ResearchPipeline:
         self._answer_service = AnswerService(settings.openai_api_key, settings.openai_model)
 
     async def run(self, request: QueryRequest) -> QueryResponse:
+        if not self._settings.openai_api_key:
+            raise HTTPException(
+                status_code=503,
+                detail="OPENAI_API_KEY is required. This lightweight deployment uses OpenAI for embeddings and answer generation.",
+            )
+
         papers = await self._paper_search.search(request.query, request.max_papers)
         if not papers:
             raise HTTPException(status_code=404, detail="No papers found for the supplied query.")

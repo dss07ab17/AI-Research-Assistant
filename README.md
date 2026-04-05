@@ -8,17 +8,16 @@ Production-oriented FastAPI backend that searches research papers, downloads and
 - `/` serves a lightweight frontend for submitting research questions
 - arXiv paper discovery
 - PDF download and text extraction
-- local embedding generation with `sentence-transformers`
+- OpenAI embeddings for lightweight deployment
 - in-memory vector retrieval for request-scoped RAG
-- structured JSON answers with citations
-- optional OpenAI answer synthesis when `OPENAI_API_KEY` is configured
+- OpenAI answer synthesis with structured citations
 
 ## Architecture
 
 - `app/clients/arxiv.py`: paper discovery
 - `app/services/pdf_service.py`: PDF download and parsing
 - `app/services/chunking.py`: paragraph-aware chunking
-- `app/services/embedding_service.py`: embedding generation
+- `app/services/embedding_service.py`: OpenAI embedding generation
 - `app/services/vector_store.py`: hybrid retrieval and re-ranking
 - `app/services/answer_service.py`: structured answer synthesis
 - `app/services/research_pipeline.py`: end-to-end orchestration
@@ -47,13 +46,13 @@ This repo includes a `Dockerfile` and `railway.json`, so Railway can deploy it d
 3. Railway will detect the root `Dockerfile` and build the service from it.
 4. In the Railway service settings, set the healthcheck path to `/health`.
 5. Add environment variables:
-   - `OPENAI_API_KEY` if you want OpenAI-based answer synthesis
+   - `OPENAI_API_KEY` is required for this deployment
    - `MAX_PAPERS=5` to match the app default, or lower it manually if your instance is memory-constrained
 6. Deploy and open the generated Railway domain.
 
 Notes:
 - This app serves both the frontend and backend from the same service.
-- The Docker image pre-downloads the sentence-transformer model to reduce first-request delays.
+- This version avoids local ML model downloads and uses OpenAI for embeddings and final answer generation.
 - `data/` is ephemeral on Railway unless you attach a volume.
 - If memory is tight, lower `MAX_PAPERS` manually and use a larger Railway instance if needed.
 
@@ -71,10 +70,10 @@ docker run -p 8000:8000 --env OPENAI_API_KEY=your_key_here ai-research-assistant
 Copy `.env.example` to `.env` and set values as needed:
 
 ```env
-OPENAI_API_KEY=
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-If `OPENAI_API_KEY` is omitted, the system still returns structured responses using extractive synthesis from retrieved paper content.
+`OPENAI_API_KEY` is required because this lightweight version uses OpenAI for both embeddings and final answer generation.
 
 ## Example request
 
