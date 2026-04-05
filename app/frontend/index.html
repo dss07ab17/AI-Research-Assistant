@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Research Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Research Agent</p>
+        <h1>Ask one question and let the pipeline pull papers, parse evidence, and answer with citations.</h1>
+        <p class="subcopy">
+          This frontend is intentionally lightweight: it drives the full backend workflow and shows the structured RAG output clearly.
+        </p>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-label">Pipeline</div>
+        <ol>
+          <li>Search papers</li>
+          <li>Download PDFs</li>
+          <li>Chunk and embed</li>
+          <li>Retrieve evidence</li>
+          <li>Return cited answer</li>
+        </ol>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel query-panel">
+        <form id="query-form">
+          <label for="query" class="field-label">Research question</label>
+          <textarea id="query" name="query" rows="6" placeholder="Example: What are the latest retrieval-augmented generation methods for scientific QA?" required></textarea>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="max_papers" class="field-label">Max papers</label>
+              <input id="max_papers" name="max_papers" type="number" min="1" max="10" value="5">
+            </div>
+            <button id="submit-button" type="submit">Run Research Query</button>
+          </div>
+        </form>
+
+        <div id="status" class="status idle">Ready.</div>
+      </section>
+
+      <section class="panel results-panel">
+        <div class="results-header">
+          <h2>Structured response</h2>
+          <p>Answers, key points, and citations from the backend.</p>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+          Submit a question to see the full research output here.
+        </div>
+
+        <div id="results" class="results hidden">
+          <article class="result-block">
+            <h3>Answer</h3>
+            <p id="answer"></p>
+          </article>
+
+          <article class="result-block">
+            <h3>Key points</h3>
+            <ul id="key-points"></ul>
+          </article>
+
+          <article class="result-block">
+            <h3>Citations</h3>
+            <ul id="citations"></ul>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
